@@ -1,0 +1,49 @@
+---
+- name: Remove existing device entries.
+  xml:
+    path: "{{ syncthing_config }}"
+    xpath: /configuration/device
+    state: absent
+- name: Adding all of the devices.
+  xml:
+    path: "{{ syncthing_config }}"
+    xpath: /configuration
+    pretty_print: yes
+    add_children:
+      - device: 
+          id: "{{ hostvars[item]['ansible_local']['syncthing']['device-id'] }}"
+          name: "{{ hostvars[item]['ansible_hostname'] }}"
+          compression: metadata
+          introducer: "false"
+          skipIntroductionRemovals: "false"
+          introducedBy: ""
+          _:
+            - address: dynamic
+            - paused: "false"
+            - autoAcceptFolders: "false"
+  with_items: "{{ groups['syncthing'] }}"
+  notify:
+    - restart syncthing
+- name: Remove existing device entries.
+  xml:
+    path: "{{ syncthing_config }}"
+    xpath: /configuration/folder
+    state: absent
+- name: Added the folders.
+  xml:
+    path: "{{ syncthing_config }}"
+    xpath: /configuration
+    pretty_print: yes
+    add_children:
+      - folder:
+          id: "{{ item['id'] }}"
+          label: "{{ item['label'] }}"
+          path: "{{ item['path'] }}"
+          type: sendreceive
+          rescanIntervalS: "60"
+          fsWatcherEnabled: "true"
+          fsWatcherDelayS: "10"
+          ignorePerms: "false"
+          autoNormalize: "true"
+          _: "[{% for host in groups['syncthing'] %}{'device': {'id': '{{ hostvars[host]['ansible_local']['syncthing']['device-id'] }}'}},{% endfor %}{'order': 'random'}]"
+  with_items: "{{ syncthing_folders }}"

@@ -1,0 +1,12 @@
+#!/usr/bin/python3
+
+from json import dumps
+from subprocess import Popen, PIPE
+
+id = Popen(['syncthing', '-home={{ syncthing_cnf_dir }}', '-device-id'], stdout=PIPE).stdout.read().decode("utf-8").strip()
+
+output = {
+	"device-id": id
+}
+
+print(dumps(output))
