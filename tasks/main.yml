@@ -36,11 +36,11 @@
     state: started
     enabled: yes
 - name: Open Syncthing listen port
-  firewalld:
-    port: "{{ item }}"
+  ansible.posix.firewalld:
+    service: "{{ item }}"
     permanent: true
     state: enabled
     immediate: yes
-  with_items:
-    - 22000/tcp
-    - 21027/udp
+  loop:
+    - syncthing
+    - syncthing-gui
