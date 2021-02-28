@@ -43,4 +43,3 @@
     immediate: yes
   loop:
     - syncthing
-    - syncthing-gui

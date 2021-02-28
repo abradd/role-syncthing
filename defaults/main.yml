@@ -1,4 +1,5 @@
 ---
+syncthing_gui_port: 8384
 syncthing_cnf_dir: "/home/{{ syncthing_user }}/.config/syncthing"
 syncthing_config: "{{ syncthing_cnf_dir }}/config.xml"
 syncthing_service: "syncthing@{{ syncthing_user }}"
