@@ -1,45 +1,8 @@
 ---
-- name: Install syncthing packages.
-  package:
-    name: "{{ item }}"
-    state: present
-  loop:
-    - syncthing
-    - python3-lxml
-- name: Setup global facts directory.
-  file:
-    path: "{{ item }}"
-    state: directory
-    owner: root
-    group: root
-    mode: 0755
-  loop:
-    - /etc/ansible
-    - /etc/ansible/facts.d
-- name: Add syncthing fact.
-  template:
-    src: syncthing.fact.j2
-    dest: /etc/ansible/facts.d/syncthing.fact
-    owner: root
-    group: root
-    mode: 0755
-- name: Increase watches for syncthing.
-  sysctl:
-    name: fs.inotify.max_user_watches
-    value: '204800'
-    sysctl_set: yes
-    state: present
-    reload: yes
-- name: Start syncthing service.
-  service:
-    name: "{{ syncthing_service }}"
-    state: started
-    enabled: yes
-- name: Open Syncthing listen port
-  ansible.posix.firewalld:
-    service: "{{ item }}"
-    permanent: true
-    state: enabled
-    immediate: yes
-  loop:
-    - syncthing
+- name: Install syncthing for Debian based distro
+  import_tasks: install_debian.yml
+  when: ansible_facts['os_family']|lower == 'debian'
+
+- name: Install syncthing for RHEL based distro
+  import_tasks: install_rhel.yml
+  when: ansible_facts['os_family']|lower == 'rhel'
