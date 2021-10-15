@@ -45,15 +45,15 @@
   file:
     path: "/home/{{ syncthing_user }}/.config/systemd/user/"
     state: directory
-    owner: {{ syncthing_user }}
-    group: {{ syncthing_user }}
+    owner: "{{ syncthing_user }}"
+    group: "{{ syncthing_user }}"
 
 - name: Move syncthing.service to user dir
   copy:
     src: /usr/lib/systemd/user/syncthing.service
     dest: "/home/{{ syncthing_user }}/.config/systemd/user/"
-    owner: {{ syncthing_user }}
-    group: {{ syncthing_user }}
+    owner: "{{ syncthing_user }}"
+    group: "{{ syncthing_user }}"
 
 - name: Enable and start syncthing service as user 
   systemd:
@@ -62,4 +62,4 @@
     state: started
     scope: user
   become: yes
-  become_user: {{ syncthing_user }}
+  become_user: "{{ syncthing_user }}"
