@@ -6,3 +6,6 @@
 - name: Install syncthing for RHEL based distro
   import_tasks: install_rhel.yml
   when: ansible_facts['os_family']|lower == 'rhel'
+
+- name: Configure syncthing
+  import_tasks: cluster.yml

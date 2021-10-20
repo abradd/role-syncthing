@@ -1,14 +1,24 @@
 ---
+- name: Stop syncthing service as user 
+  systemd:
+    name: syncthing.service
+    state: stopped
+    scope: user
+  become: yes
+  become_user: "{{ syncthing_user }}"
+  
 - name: Setup GUI port.
   xml:
     path: "{{ syncthing_config }}"
     xpath: /configuration/gui/address
     value: "127.0.0.1:{{ syncthing_gui_port }}"
+    
 - name: Remove existing device entries.
   xml:
     path: "{{ syncthing_config }}"
     xpath: /configuration/device
     state: absent
+    
 - name: Adding all of the devices.
   xml:
     path: "{{ syncthing_config }}"
@@ -16,8 +26,8 @@
     pretty_print: yes
     add_children:
       - device: 
-          id: "{{ hostvars[item]['ansible_local']['syncthing']['device-id'] }}"
-          name: "{{ hostvars[item]['ansible_hostname'] }}"
+          id: "{{ item.value['id'] }}"
+          name: "{{ item.key }}"
           compression: metadata
           introducer: "false"
           skipIntroductionRemovals: "false"
@@ -26,9 +36,9 @@
             - address: dynamic
             - paused: "false"
             - autoAcceptFolders: "false"
-  with_items: "{{ ansible_play_batch }}"
-  notify:
-    - restart syncthing
+  with_dict: "{{ syncthing_hosts }}"
+  # notify:
+  #   - restart syncthing
 - name: Remove existing device entries.
   xml:
     path: "{{ syncthing_config }}"
@@ -41,8 +51,8 @@
     pretty_print: yes
     add_children:
       - folder:
-          id: "{{ item['id'] }}"
-          label: "{{ item['label'] }}"
+          id: "{{ syncthing_folders[item.name]['id'] }}"
+          label: "{{ item['name'] }}"
           path: "{{ item['path'] }}"
           type: sendreceive
           rescanIntervalS: "60"
@@ -50,5 +60,12 @@
           fsWatcherDelayS: "10"
           ignorePerms: "false"
           autoNormalize: "true"
-          _: "[{% for host in ansible_play_batch %}{'device': {'id': '{{ hostvars[host]['ansible_local']['syncthing']['device-id'] }}'}},{% endfor %}{'order': 'random'}]"
-  with_items: "{{ syncthing_folders }}"
+          _: "[{% for host in item['share_with'] %}{'device': {'id': '{{ syncthing_hosts[host]['id'] }}'}},{% endfor %}{'order': 'random'}]"
+  with_items: "{{ syncthing_shares[ansible_hostname]['shares'] }}"
+- name: Start syncthing service as user 
+  systemd:
+    name: syncthing.service
+    state: started
+    scope: user
+  become: yes
+  become_user: "{{ syncthing_user }}"
